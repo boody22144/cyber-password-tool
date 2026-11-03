@@ -44,7 +44,7 @@ def generate_academic_password():
     lower_letters = ''.join(random.choices(string.ascii_lowercase, k=4))
     digits = ''.join(random.choices(string.digits, k=4))
     first_two_upper = lower_letters[:2].upper()
-    return f"{lower_letters}{digits}{first_two_upper}"
+    return f"{lower_letters}{digits}{first_two_upper}@"
 
 st.title("بوابة فحص أمان كلمات المرور 🔐")
 st.write("أداة سيبرانية متقدمة لتحليل قوة كلمات المرور والتحقق من تسريبها.")
@@ -85,10 +85,9 @@ if password:
         st.success("✅ أمان تام: لم يتم العثور على هذه الكلمة في أي تسريبات معروفة.")
 
 st.write("---")
-st.subheader("🛡️ مولد كلمات المرور (النمط الأكاديمي)")
+st.subheader("🛡️ مولد كلمات المرور ")
 st.write("توليد كلمة مرور بنفس نمط الحسابات الجامعية والأنظمة الأكاديمية:")
 
-if st.button("✨ توليد كلمة مرور أكاديمية"):
+if st.button("✨ توليد كلمة مرور "):
     new_pass = generate_academic_password()
     st.success(f"كلمة المرور المقترحة:  `{new_pass}`")
-    st.caption("💡 **الصيغة:** 4 حروف صغيرة + 4 أرقام + تحويل أول حرفين إلى كابيتال في النهاية.")
