@@ -2,19 +2,29 @@ import streamlit as st
 import requests
 import hashlib
 from zxcvbn import zxcvbn
-import secrets
+import random
 import string
-import random 
 
-# 1. إعدادات الصفحة
 st.set_page_config(page_title="بوابة فحص كلمات المرور", page_icon="🔐")
 
-# 2. شعار جامعة نجران
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    st.image("nu_logo.png", use_container_width=True)
+    try:
+        st.image("nu_logo.png", use_container_width=True)
+    except:
+        pass
 
-# 3. دالة فحص التسريبات
+def translate_time(time_str):
+    translations = {
+        "less than a second": "أقل من ثانية", "seconds": "ثواني", "second": "ثانية",
+        "minutes": "دقائق", "minute": "دقيقة", "hours": "ساعات", "hour": "ساعة",
+        "days": "أيام", "day": "يوم", "months": "أشهر", "month": "شهر",
+        "years": "سنوات", "year": "سنة", "centuries": "قرون", "century": "قرن"
+    }
+    for eng, ar in translations.items():
+        time_str = time_str.replace(eng, ar)
+    return time_str
+
 def check_pwned_password(password):
     sha1_password = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
     first5_chars, tail = sha1_password[:5], sha1_password[5:]
@@ -29,67 +39,30 @@ def check_pwned_password(password):
         return 0
     except requests.exceptions.RequestException:
         return -1
-def translate_time(time_str):
-    translations = {
-        "less than a second": "أقل من ثانية",
-        "seconds": "ثواني",
-        "second": "ثانية",
-        "minutes": "دقائق",
-        "minute": "دقيقة",
-        "hours": "ساعات",
-        "hour": "ساعة",
-        "days": "أيام",
-        "day": "يوم",
-        "months": "أشهر",
-        "month": "شهر",
-        "years": "سنوات",
-        "year": "سنة",
-        "centuries": "قرون",
-        "century": "قرن"
-    }
-    for eng, ar in translations.items():
-        time_str = time_str.replace(eng, ar)
-    return time_str
-# 4. دالة توليد كلمة مرور معقدة
-def generate_strong_password():
-    # قائمة كلمات مألوفة (يمكنك تعديلها وإضافة كلماتك المفضلة)
-    words = ["Shadow", "Ryze", "Linux", "Falcon", "River", "Moon", "Tiger", "Ocean", 
-             "Iron", "Eagle", "Silver", "Mountain", "Thunder", "Desert", "Storm", 
-             "Winter", "Knight", "Dragon", "Castle", "Shield", "Nexus"]
-    
-    # اختيار 3 كلمات عشوائية
-    selected_words = random.sample(words, 3)
-    
-    # إضافة رقم عشوائي ورمز بسيط لتجاوز شروط التعقيد في أغلب المواقع
-    number = random.randint(10, 99)
-    symbol = random.choice(["!", "@", "#", "$", "*"])
-    
-    # دمج الكلمات برمز الـ (Dash) لتسهيل القراءة
-    passphrase = "-".join(selected_words) + f"-{number}{symbol}"
-    return passphrase
 
-# 5. واجهة المستخدم الأساسية
+def generate_academic_password():
+    lower_letters = ''.join(random.choices(string.ascii_lowercase, k=4))
+    digits = ''.join(random.choices(string.digits, k=4))
+    first_two_upper = lower_letters[:2].upper()
+    return f"{lower_letters}{digits}{first_two_upper}"
+
 st.title("بوابة فحص أمان كلمات المرور 🔐")
-st.write("أداة سيبرانية متقدمة لتحليل قوة كلمات المرور والتحقق من تسريبها في قواعد بيانات الاختراقات العالمية.")
+st.write("أداة سيبرانية متقدمة لتحليل قوة كلمات المرور والتحقق من تسريبها.")
 
-# قسم إدخال الكلمة
 password = st.text_input("أدخل كلمة المرور هنا لفحصها:", type="password")
 
 if password:
     st.write("---")
     
-    # تحليل قوة الكلمة
-   # تحليل قوة الكلمة
     result = zxcvbn(password)
     score = result['score'] 
     raw_crack_time = result['crack_times_display']['offline_slow_hashing_1e4_per_second']
-    crack_time = translate_time(raw_crack_time) # تمرير الوقت للترجمة
+    crack_time = translate_time(raw_crack_time)
     
     st.subheader("📊 تحليل متانة الكلمة:")
     st.progress((score + 1) / 5)
     
-    # فصل التقييم عن الوقت باستخدام \n\n لترتيب أفضل
-    if score == 0 or score == 1:
+    if score <= 1:
         st.error(f"⚠️ التقييم: ضعيفة جداً! \n\n ⏱️ الوقت المتوقع لكسرها: **{crack_time}**")
     elif score == 2:
         st.warning(f"⚠️ التقييم: متوسطة. \n\n ⏱️ الوقت المتوقع لكسرها: **{crack_time}**")
@@ -111,12 +84,11 @@ if password:
     else:
         st.success("✅ أمان تام: لم يتم العثور على هذه الكلمة في أي تسريبات معروفة.")
 
-# 6. قسم توليد كلمات المرور الجديدة
 st.write("---")
-st.subheader("🛡️ مولد كلمات المرور الآمنة")
-st.write("هل تحتاج إلى كلمة مرور قوية لا يمكن اختراقها؟")
+st.subheader("🛡️ مولد كلمات المرور (النمط الأكاديمي)")
+st.write("توليد كلمة مرور بنفس نمط الحسابات الجامعية والأنظمة الأكاديمية:")
 
-if st.button("توليد كلمة مرور سهلة الحفظ"):
-    new_password = generate_strong_password() 
-    st.info(f"كلمة المرور المقترحة: **{new_password}**")
-    st.caption("هذه الكلمة تسمى (Passphrase) وهي تعتمد على الطول لتعقيد الاختراق، وسهولة الكلمات لتسهيل الحفظ ذهنياً.")
+if st.button("✨ توليد كلمة مرور أكاديمية"):
+    new_pass = generate_academic_password()
+    st.success(f"كلمة المرور المقترحة:  `{new_pass}`")
+    st.caption("💡 **الصيغة:** 4 حروف صغيرة + 4 أرقام + تحويل أول حرفين إلى كابيتال في النهاية.")
